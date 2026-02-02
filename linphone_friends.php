@@ -115,7 +115,12 @@ $extensions = $stmt->fetchAll(PDO::FETCH_ASSOC);
 $friends = [];
 foreach ($extensions as $ext) {
     $name = $ext["effective_caller_id_name"] ?: $ext["description"] ?: $ext["extension"];
-    $friends[] = ["name" => $name, "sip_address" => $ext["extension"] . "@" . $domain];
+    $friends[] = [
+        "name" => $name,
+        "sip_address" => $ext["extension"] . "@" . $domain,
+        "subscribe" => true,
+        "subscribe_policy" => "accept"
+    ];
 }
 
 echo json_encode(["version" => time(), "count" => count($friends), "friends" => $friends]);

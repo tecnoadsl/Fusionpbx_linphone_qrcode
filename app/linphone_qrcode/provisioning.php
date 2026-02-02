@@ -89,7 +89,7 @@
 		<entry name="realm" overwrite="true"><?php echo $domain_name; ?></entry>
 		<entry name="reg_expires" overwrite="true">86400</entry>
 		<entry name="reg_sendregister" overwrite="true">1</entry>
-		<entry name="publish" overwrite="true">0</entry>
+		<entry name="publish" overwrite="true">1</entry>
 		<entry name="push_notification_allowed" overwrite="true">1</entry>
 		<entry name="nat_policy_ref" overwrite="true">tecnoadsl_nat_policy</entry>
 	</section>
@@ -114,6 +114,14 @@
 		<entry name="display_name" overwrite="true"><?php echo htmlspecialchars($display_name); ?></entry>
 		<entry name="remote_friends_url" overwrite="true">https://<?php echo $_SERVER['HTTP_HOST']; ?>/app/provision/linphone_friends.php</entry>
 		<entry name="remote_friends_sync_interval_hours" overwrite="true">4</entry>
+		<entry name="auto_download_friends_enabled" overwrite="true">1</entry>
+	</section>
+	<section name="misc">
+		<entry name="enable_basic_to_client_group_chat_room" overwrite="true">1</entry>
+	</section>
+	<section name="friends">
+		<entry name="subscribe_presence" overwrite="true">1</entry>
+		<entry name="publish_presence" overwrite="true">1</entry>
 	</section>
 	<section name="net">
 		<entry name="nat_policy_ref" overwrite="true">tecnoadsl_nat_policy</entry>
