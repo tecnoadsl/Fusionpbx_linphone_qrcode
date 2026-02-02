@@ -76,6 +76,14 @@
 //display name
 	$display_name = $ext['effective_caller_id_name'] ? $ext['effective_caller_id_name'] : $ext['extension'];
 
+//get all extensions in domain for BLF/presence
+	$sql = "SELECT extension, effective_caller_id_name, description FROM v_extensions ";
+	$sql .= "WHERE domain_uuid = :dom AND enabled = 'true' AND extension != :current_ext ";
+	$sql .= "ORDER BY extension";
+	$parameters = array('dom' => $domain_uuid, 'current_ext' => $ext['extension']);
+	$all_extensions = $database->select($sql, $parameters, 'all');
+	unset($sql, $parameters);
+
 //output XML
 	header('Content-Type: application/xml; charset=utf-8');
 	echo '<?xml version="1.0" encoding="UTF-8"?>';
@@ -152,4 +160,23 @@
 		<entry name="channels" overwrite="true">1</entry>
 		<entry name="enabled" overwrite="true">1</entry>
 	</section>
+<?php
+//generate friend sections for BLF/presence
+if (!empty($all_extensions)) {
+	$i = 0;
+	foreach ($all_extensions as $friend) {
+		$friend_name = $friend['effective_caller_id_name'] ?: $friend['description'] ?: $friend['extension'];
+		$friend_name = htmlspecialchars($friend_name, ENT_XML1, 'UTF-8');
+		$friend_ext = htmlspecialchars($friend['extension'], ENT_XML1, 'UTF-8');
+?>
+	<section name="friend_<?php echo $i; ?>">
+		<entry name="url" overwrite="true">"<?php echo $friend_name; ?>" &lt;sip:<?php echo $friend_ext; ?>@<?php echo $domain_name; ?>&gt;</entry>
+		<entry name="pol" overwrite="true">accept</entry>
+		<entry name="subscribe" overwrite="true">1</entry>
+	</section>
+<?php
+		$i++;
+	}
+}
+?>
 </config>
