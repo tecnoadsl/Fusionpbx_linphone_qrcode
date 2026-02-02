@@ -28,10 +28,10 @@
 	foreach ($domains as $domain) {
 		$iv = substr(md5($domain['domain_uuid']), 0, 16);
 		$decrypted = @openssl_decrypt(base64_decode($token), 'AES-256-CBC', $domain['domain_uuid'], 0, $iv);
-		
+
 		if ($decrypted && strpos($decrypted, '|') !== false) {
 			list($ext_uuid, $timestamp) = explode('|', $decrypted);
-			
+
 			//check if token is not too old (24 hours)
 			if (time() - intval($timestamp) < 86400) {
 				$sql2 = "SELECT extension_uuid FROM v_extensions WHERE extension_uuid = :ext AND domain_uuid = :dom";
@@ -67,6 +67,12 @@
 	$push_proxy = 'push.tecnoadsl.net';
 	$transport = 'tcp';
 
+//TURN server settings
+	$turn_server = '185.29.147.43';
+	$turn_port = '3479';
+	$turn_username = 'olinphone';
+	$turn_password = '1234';
+
 //display name
 	$display_name = $ext['effective_caller_id_name'] ? $ext['effective_caller_id_name'] : $ext['extension'];
 
@@ -81,10 +87,11 @@
 		<entry name="reg_route" overwrite="true">sip:<?php echo $push_proxy; ?>;transport=<?php echo $transport; ?>;lr</entry>
 		<entry name="reg_identity" overwrite="true">sip:<?php echo $ext['extension']; ?>@<?php echo $domain_name; ?></entry>
 		<entry name="realm" overwrite="true"><?php echo $domain_name; ?></entry>
-		<entry name="reg_expires" overwrite="true">600</entry>
+		<entry name="reg_expires" overwrite="true">86400</entry>
 		<entry name="reg_sendregister" overwrite="true">1</entry>
 		<entry name="publish" overwrite="true">0</entry>
 		<entry name="push_notification_allowed" overwrite="true">1</entry>
+		<entry name="nat_policy_ref" overwrite="true">tecnoadsl_nat_policy</entry>
 	</section>
 	<section name="auth_info_0">
 		<entry name="username" overwrite="true"><?php echo $ext['extension']; ?></entry>
@@ -93,19 +100,31 @@
 		<entry name="realm" overwrite="true"><?php echo $domain_name; ?></entry>
 		<entry name="domain" overwrite="true"><?php echo $domain_name; ?></entry>
 	</section>
+	<section name="auth_info_1">
+		<entry name="username" overwrite="true"><?php echo $turn_username; ?></entry>
+		<entry name="userid" overwrite="true"><?php echo $turn_username; ?></entry>
+		<entry name="passwd" overwrite="true"><?php echo $turn_password; ?></entry>
+		<entry name="realm" overwrite="true">push.tecnoadsl.net</entry>
+	</section>
 	<section name="sip">
 		<entry name="default_proxy" overwrite="true">0</entry>
 		<entry name="use_rfc2833" overwrite="true">1</entry>
 	</section>
 	<section name="app">
 		<entry name="display_name" overwrite="true"><?php echo htmlspecialchars($display_name); ?></entry>
+		<entry name="remote_friends_url" overwrite="true">https://<?php echo $_SERVER['HTTP_HOST']; ?>/app/provision/linphone_friends.php</entry>
+		<entry name="remote_friends_sync_interval_hours" overwrite="true">4</entry>
 	</section>
 	<section name="net">
-		<entry name="nat_policy_ref" overwrite="true">default_policy</entry>
+		<entry name="nat_policy_ref" overwrite="true">tecnoadsl_nat_policy</entry>
 	</section>
-	<section name="nat_policy_default_policy">
-		<entry name="stun_server" overwrite="true"><?php echo $push_proxy; ?></entry>
-		<entry name="protocols" overwrite="true">stun,ice</entry>
+	<section name="nat_policy_0">
+		<entry name="ref" overwrite="true">tecnoadsl_nat_policy</entry>
+		<entry name="stun_server" overwrite="true"><?php echo $turn_server; ?>:<?php echo $turn_port; ?></entry>
+		<entry name="stun_server_username" overwrite="true"><?php echo $turn_username; ?></entry>
+		<entry name="protocols" overwrite="true">stun,turn,ice</entry>
+		<entry name="tcp_turn_transport" overwrite="true">1</entry>
+		<entry name="udp_turn_transport" overwrite="true">1</entry>
 	</section>
 	<section name="audio_codec_0">
 		<entry name="mime" overwrite="true">opus</entry>
