@@ -67,6 +67,15 @@
 	$push_proxy = 'push.tecnoadsl.net';
 	$transport = 'tcp';
 
+//determine port based on domain
+	if (preg_match('/\.voip6\.tecnoadsl\.net$/', $domain_name)) {
+		$sip_port = '5066';
+	} elseif (preg_match('/\.voip5\.tecnoadsl\.net$/', $domain_name)) {
+		$sip_port = '5065';
+	} else {
+		$sip_port = '5060';
+	}
+
 //TURN server settings
 	$turn_server = '185.29.147.43';
 	$turn_port = '3479';
@@ -91,8 +100,8 @@
 
 <config xmlns="http://www.linphone.org/xsds/lpconfig.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.linphone.org/xsds/lpconfig.xsd lpconfig.xsd">
 	<section name="proxy_0">
-		<entry name="reg_proxy" overwrite="true">sip:<?php echo $push_proxy; ?>;transport=<?php echo $transport; ?></entry>
-		<entry name="reg_route" overwrite="true">sip:<?php echo $push_proxy; ?>;transport=<?php echo $transport; ?>;lr</entry>
+		<entry name="reg_proxy" overwrite="true">sip:<?php echo $push_proxy; ?>:<?php echo $sip_port; ?>;transport=<?php echo $transport; ?></entry>
+		<entry name="reg_route" overwrite="true">sip:<?php echo $push_proxy; ?>:<?php echo $sip_port; ?>;transport=<?php echo $transport; ?>;lr</entry>
 		<entry name="reg_identity" overwrite="true">sip:<?php echo $ext['extension']; ?>@<?php echo $domain_name; ?></entry>
 		<entry name="realm" overwrite="true"><?php echo $domain_name; ?></entry>
 		<entry name="reg_expires" overwrite="true">86400</entry>

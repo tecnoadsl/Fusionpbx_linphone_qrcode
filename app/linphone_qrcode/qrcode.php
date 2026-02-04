@@ -25,7 +25,16 @@
 //settings
 	$push_proxy = 'push.tecnoadsl.net';
 	$transport = 'tcp';
-	$sip_port = '5060';
+
+//determine port based on domain
+	$domain_name_temp = $_SESSION['domain_name'] ?? '';
+	if (preg_match('/\.voip6\.tecnoadsl\.net$/', $domain_name_temp)) {
+		$sip_port = '5066';
+	} elseif (preg_match('/\.voip5\.tecnoadsl\.net$/', $domain_name_temp)) {
+		$sip_port = '5065';
+	} else {
+		$sip_port = '5060';
+	}
 
 //get variables
 	$domain_uuid = $_SESSION['domain_uuid'];
