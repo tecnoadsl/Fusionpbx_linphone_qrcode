@@ -25,6 +25,14 @@
 //settings
 	$push_proxy = 'push.tecnoadsl.net';
 
+//override push proxy based on domain
+	$domain_name_temp = $_SESSION['domain_name'] ?? '';
+	if (preg_match('/\.voip6\.tecnoadsl\.net$/', $domain_name_temp)) {
+		$push_proxy = 'push6.tecnoadsl.net';
+	} elseif (preg_match('/\.voip5\.tecnoadsl\.net$/', $domain_name_temp)) {
+		$push_proxy = 'push5.tecnoadsl.net';
+	}
+
 //transport selection (default tls)
 	$allowed_transports = array('tls', 'tcp', 'udp');
 	$transport = isset($_GET['transport']) && in_array($_GET['transport'], $allowed_transports) ? $_GET['transport'] : 'tls';
