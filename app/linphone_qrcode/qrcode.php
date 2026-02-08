@@ -24,16 +24,14 @@
 
 //settings
 	$push_proxy = 'push.tecnoadsl.net';
-	$transport = 'tcp';
 
-//determine port based on domain
-	$domain_name_temp = $_SESSION['domain_name'] ?? '';
-	if (preg_match('/\.voip6\.tecnoadsl\.net$/', $domain_name_temp)) {
-		$sip_port = '5066';
-	} elseif (preg_match('/\.voip5\.tecnoadsl\.net$/', $domain_name_temp)) {
-		$sip_port = '5065';
-	} else {
-		$sip_port = '5060';
+//transport selection (default tls)
+	$allowed_transports = array('tls', 'tcp', 'udp');
+	$transport = isset($_GET['transport']) && in_array($_GET['transport'], $allowed_transports) ? $_GET['transport'] : 'tls';
+	switch ($transport) {
+		case 'tls': $sip_port = '5061'; break;
+		case 'tcp': $sip_port = '5060'; break;
+		case 'udp': $sip_port = '5060'; break;
 	}
 
 //get variables
@@ -81,7 +79,7 @@
 		$iv = substr(md5($domain_uuid), 0, 16);
 		$encrypted = openssl_encrypt($token_data, 'AES-256-CBC', $domain_uuid, 0, $iv);
 		$token = base64_encode($encrypted);
-		$provisioning_url = $base_url . '/app/linphone_qrcode/provisioning.php?token=' . urlencode($token);
+		$provisioning_url = $base_url . '/app/linphone_qrcode/provisioning.php?token=' . urlencode($token) . '&transport=' . urlencode($transport);
 	}
 
 //include the header
@@ -227,7 +225,7 @@
 	<?php if (count($extensions) > 1): ?>
 	<div class="ext-selector">
 		<label><strong><?php echo $text['label-select_extension']; ?>:</strong></label><br><br>
-		<select onchange="location.href='?extension_uuid='+this.value">
+		<select onchange="location.href='?extension_uuid='+this.value+'&transport=<?php echo urlencode($transport); ?>'">
 			<?php foreach ($extensions as $ext): ?>
 			<option value="<?php echo $ext['extension_uuid']; ?>" <?php if($ext['extension_uuid']==$selected_extension_uuid) echo 'selected'; ?>>
 				<?php echo htmlspecialchars($ext['extension']); ?>
@@ -237,7 +235,16 @@
 		</select>
 	</div>
 	<?php endif; ?>
-	
+
+	<div class="ext-selector">
+		<label><strong><?php echo $text['label-transport']; ?>:</strong></label><br><br>
+		<select onchange="location.href='?extension_uuid=<?php echo urlencode($selected_extension_uuid); ?>&transport='+this.value">
+			<option value="tls" <?php if($transport=='tls') echo 'selected'; ?>>TLS (<?php echo $text['label-recommended']; ?>)</option>
+			<option value="tcp" <?php if($transport=='tcp') echo 'selected'; ?>>TCP</option>
+			<option value="udp" <?php if($transport=='udp') echo 'selected'; ?>>UDP</option>
+		</select>
+	</div>
+
 	<p><?php echo $text['description-linphone_qrcode']; ?></p>
 	
 	<div class="qr-code" id="qrcode"></div>

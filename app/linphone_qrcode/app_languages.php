@@ -61,4 +61,7 @@ $text['label-select_extension']['en-us'] = "Select Extension";
 
 $text['label-download']['it-it'] = "Scarica App";
 $text['label-download']['en-us'] = "Download App";
+
+$text['label-recommended']['it-it'] = "consigliato";
+$text['label-recommended']['en-us'] = "recommended";
 ?>

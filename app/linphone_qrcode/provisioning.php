@@ -65,15 +65,37 @@
 
 //settings
 	$push_proxy = 'push.tecnoadsl.net';
-	$transport = 'tcp';
 
-//determine port based on domain
-	if (preg_match('/\.voip6\.tecnoadsl\.net$/', $domain_name)) {
-		$sip_port = '5066';
-	} elseif (preg_match('/\.voip5\.tecnoadsl\.net$/', $domain_name)) {
-		$sip_port = '5065';
-	} else {
-		$sip_port = '5060';
+//transport selection
+	$allowed_transports = array('tls', 'tcp', 'udp');
+	$transport = isset($_GET['transport']) && in_array($_GET['transport'], $allowed_transports) ? $_GET['transport'] : 'tls';
+
+//transport-dependent settings
+	switch ($transport) {
+		case 'tls':
+			$sip_scheme = 'sips';
+			$sip_port = '5061';
+			$local_udp_port = '-1';
+			$local_tcp_port = '-1';
+			$local_tls_port = '5061';
+			$udp_turn = '0';
+			break;
+		case 'tcp':
+			$sip_scheme = 'sip';
+			$sip_port = '5060';
+			$local_udp_port = '-1';
+			$local_tcp_port = '5060';
+			$local_tls_port = '-1';
+			$udp_turn = '0';
+			break;
+		case 'udp':
+			$sip_scheme = 'sip';
+			$sip_port = '5060';
+			$local_udp_port = '5060';
+			$local_tcp_port = '-1';
+			$local_tls_port = '-1';
+			$udp_turn = '1';
+			break;
 	}
 
 //TURN server settings
@@ -100,9 +122,9 @@
 
 <config xmlns="http://www.linphone.org/xsds/lpconfig.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.linphone.org/xsds/lpconfig.xsd lpconfig.xsd">
 	<section name="proxy_0">
-		<entry name="reg_proxy" overwrite="true">sip:<?php echo $push_proxy; ?>:<?php echo $sip_port; ?>;transport=<?php echo $transport; ?></entry>
-		<entry name="reg_route" overwrite="true">sip:<?php echo $push_proxy; ?>:<?php echo $sip_port; ?>;transport=<?php echo $transport; ?>;lr</entry>
-		<entry name="reg_identity" overwrite="true">sip:<?php echo $ext['extension']; ?>@<?php echo $domain_name; ?></entry>
+		<entry name="reg_proxy" overwrite="true"><?php echo $sip_scheme; ?>:<?php echo $push_proxy; ?>:<?php echo $sip_port; ?>;transport=<?php echo $transport; ?></entry>
+		<entry name="reg_route" overwrite="true"><?php echo $sip_scheme; ?>:<?php echo $push_proxy; ?>:<?php echo $sip_port; ?>;transport=<?php echo $transport; ?>;lr</entry>
+		<entry name="reg_identity" overwrite="true"><?php echo $sip_scheme; ?>:<?php echo $ext['extension']; ?>@<?php echo $domain_name; ?></entry>
 		<entry name="realm" overwrite="true"><?php echo $domain_name; ?></entry>
 		<entry name="reg_expires" overwrite="true">86400</entry>
 		<entry name="reg_sendregister" overwrite="true">1</entry>
@@ -126,6 +148,9 @@
 	<section name="sip">
 		<entry name="default_proxy" overwrite="true">0</entry>
 		<entry name="use_rfc2833" overwrite="true">1</entry>
+		<entry name="sip_port" overwrite="true"><?php echo $local_udp_port; ?></entry>
+		<entry name="sip_tcp_port" overwrite="true"><?php echo $local_tcp_port; ?></entry>
+		<entry name="sip_tls_port" overwrite="true"><?php echo $local_tls_port; ?></entry>
 	</section>
 	<section name="app">
 		<entry name="display_name" overwrite="true"><?php echo htmlspecialchars($display_name); ?></entry>
@@ -149,7 +174,7 @@
 		<entry name="stun_server_username" overwrite="true"><?php echo $turn_username; ?></entry>
 		<entry name="protocols" overwrite="true">stun,turn,ice</entry>
 		<entry name="tcp_turn_transport" overwrite="true">1</entry>
-		<entry name="udp_turn_transport" overwrite="true">1</entry>
+		<entry name="udp_turn_transport" overwrite="true"><?php echo $udp_turn; ?></entry>
 	</section>
 	<section name="audio_codec_0">
 		<entry name="mime" overwrite="true">opus</entry>
