@@ -73,6 +73,10 @@
 		$push_proxy = 'push5.tecnoadsl.net';
 	}
 
+//registration duration
+	$allowed_reg_expires = array('3600', '86400', '604800', '2592000');
+	$reg_expires = isset($_GET['reg_expires']) && in_array($_GET['reg_expires'], $allowed_reg_expires) ? $_GET['reg_expires'] : '2592000';
+
 //transport selection
 	$allowed_transports = array('tls', 'tcp', 'udp');
 	$transport = isset($_GET['transport']) && in_array($_GET['transport'], $allowed_transports) ? $_GET['transport'] : 'tls';
@@ -133,7 +137,7 @@
 		<entry name="reg_route" overwrite="true"><?php echo $sip_scheme; ?>:<?php echo $push_proxy; ?>:<?php echo $sip_port; ?>;transport=<?php echo $transport; ?>;lr</entry>
 		<entry name="reg_identity" overwrite="true"><?php echo $sip_scheme; ?>:<?php echo $ext['extension']; ?>@<?php echo $domain_name; ?></entry>
 		<entry name="realm" overwrite="true"><?php echo $domain_name; ?></entry>
-		<entry name="reg_expires" overwrite="true">2592000</entry>
+		<entry name="reg_expires" overwrite="true"><?php echo $reg_expires; ?></entry>
 		<entry name="reg_sendregister" overwrite="true">1</entry>
 		<entry name="publish" overwrite="true">1</entry>
 		<entry name="push_notification_allowed" overwrite="true">1</entry>

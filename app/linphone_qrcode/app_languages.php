@@ -64,4 +64,19 @@ $text['label-download']['en-us'] = "Download App";
 
 $text['label-recommended']['it-it'] = "consigliato";
 $text['label-recommended']['en-us'] = "recommended";
+
+$text['label-reg_expires']['it-it'] = "Durata registrazione";
+$text['label-reg_expires']['en-us'] = "Registration duration";
+
+$text['label-1_hour']['it-it'] = "1 ora";
+$text['label-1_hour']['en-us'] = "1 hour";
+
+$text['label-1_day']['it-it'] = "1 giorno";
+$text['label-1_day']['en-us'] = "1 day";
+
+$text['label-1_week']['it-it'] = "1 settimana";
+$text['label-1_week']['en-us'] = "1 week";
+
+$text['label-1_month']['it-it'] = "1 mese";
+$text['label-1_month']['en-us'] = "1 month";
 ?>

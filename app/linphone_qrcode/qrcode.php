@@ -42,6 +42,10 @@
 		case 'udp': $sip_port = '5060'; break;
 	}
 
+//registration duration selection (default 1 month)
+	$allowed_reg_expires = array('3600', '86400', '604800', '2592000');
+	$reg_expires = isset($_GET['reg_expires']) && in_array($_GET['reg_expires'], $allowed_reg_expires) ? $_GET['reg_expires'] : '2592000';
+
 //get variables
 	$domain_uuid = $_SESSION['domain_uuid'];
 	$domain_name = $_SESSION['domain_name'];
@@ -87,7 +91,7 @@
 		$iv = substr(md5($domain_uuid), 0, 16);
 		$encrypted = openssl_encrypt($token_data, 'AES-256-CBC', $domain_uuid, 0, $iv);
 		$token = base64_encode($encrypted);
-		$provisioning_url = $base_url . '/app/linphone_qrcode/provisioning.php?token=' . urlencode($token) . '&transport=' . urlencode($transport);
+		$provisioning_url = $base_url . '/app/linphone_qrcode/provisioning.php?token=' . urlencode($token) . '&transport=' . urlencode($transport) . '&reg_expires=' . urlencode($reg_expires);
 	}
 
 //include the header
@@ -233,7 +237,7 @@
 	<?php if (count($extensions) > 1): ?>
 	<div class="ext-selector">
 		<label><strong><?php echo $text['label-select_extension']; ?>:</strong></label><br><br>
-		<select onchange="location.href='?extension_uuid='+this.value+'&transport=<?php echo urlencode($transport); ?>'">
+		<select onchange="location.href='?extension_uuid='+this.value+'&transport=<?php echo urlencode($transport); ?>&reg_expires=<?php echo urlencode($reg_expires); ?>'">
 			<?php foreach ($extensions as $ext): ?>
 			<option value="<?php echo $ext['extension_uuid']; ?>" <?php if($ext['extension_uuid']==$selected_extension_uuid) echo 'selected'; ?>>
 				<?php echo htmlspecialchars($ext['extension']); ?>
@@ -246,10 +250,20 @@
 
 	<div class="ext-selector">
 		<label><strong><?php echo $text['label-transport']; ?>:</strong></label><br><br>
-		<select onchange="location.href='?extension_uuid=<?php echo urlencode($selected_extension_uuid); ?>&transport='+this.value">
+		<select onchange="location.href='?extension_uuid=<?php echo urlencode($selected_extension_uuid); ?>&transport='+this.value+'&reg_expires=<?php echo urlencode($reg_expires); ?>'">
 			<option value="tls" <?php if($transport=='tls') echo 'selected'; ?>>TLS (<?php echo $text['label-recommended']; ?>)</option>
 			<option value="tcp" <?php if($transport=='tcp') echo 'selected'; ?>>TCP</option>
 			<option value="udp" <?php if($transport=='udp') echo 'selected'; ?>>UDP</option>
+		</select>
+	</div>
+
+	<div class="ext-selector">
+		<label><strong><?php echo $text['label-reg_expires']; ?>:</strong></label><br><br>
+		<select onchange="location.href='?extension_uuid=<?php echo urlencode($selected_extension_uuid); ?>&transport=<?php echo urlencode($transport); ?>&reg_expires='+this.value">
+			<option value="3600" <?php if($reg_expires=='3600') echo 'selected'; ?>><?php echo $text['label-1_hour']; ?></option>
+			<option value="86400" <?php if($reg_expires=='86400') echo 'selected'; ?>><?php echo $text['label-1_day']; ?></option>
+			<option value="604800" <?php if($reg_expires=='604800') echo 'selected'; ?>><?php echo $text['label-1_week']; ?></option>
+			<option value="2592000" <?php if($reg_expires=='2592000') echo 'selected'; ?>><?php echo $text['label-1_month']; ?> (<?php echo $text['label-recommended']; ?>)</option>
 		</select>
 	</div>
 
@@ -295,6 +309,17 @@
 			<td><?php echo $text['label-port']; ?>:</td>
 			<td><?php echo $sip_port; ?></td>
 		</tr>
+		<tr>
+			<td><?php echo $text['label-reg_expires']; ?>:</td>
+			<td><?php
+				switch ($reg_expires) {
+					case '3600': echo $text['label-1_hour']; break;
+					case '86400': echo $text['label-1_day']; break;
+					case '604800': echo $text['label-1_week']; break;
+					case '2592000': echo $text['label-1_month']; break;
+				}
+			?></td>
+		</tr>
 	</table>
 	
 	<div class="instructions">
@@ -331,7 +356,7 @@ new QRCode(document.getElementById("qrcode"), {
 	height: 220,
 	colorDark: "#000000",
 	colorLight: "#ffffff",
-	correctLevel: QRCode.CorrectLevel.H
+	correctLevel: QRCode.CorrectLevel.M
 });
 <?php endif; ?>
 
