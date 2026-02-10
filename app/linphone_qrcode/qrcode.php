@@ -140,7 +140,9 @@
 				//qr code image
 				if (!empty($qr_image_data)) {
 					$email_body .= '<tr><td align="center" style="padding: 20px 30px;">';
-					$email_body .= '<img src="cid:qrcode_image" width="220" height="220" alt="QR Code" style="display: block; margin: 0 auto; border: 1px solid #eee; padding: 10px; background: #fff;" />';
+					$email_body .= '<table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center"><tr><td align="center" style="background: #fff; border: 1px solid #eee; padding: 10px;">';
+					$email_body .= '<img src="cid:qrcode_image" width="250" height="250" alt="QR Code" style="display: block; width: 250px; height: 250px;" />';
+					$email_body .= '</td></tr></table>';
 					$email_body .= '</td></tr>';
 				}
 				//manual config title
@@ -164,8 +166,9 @@
 				$email_body .= '</td></tr></table>';
 				$email_body .= '</body></html>';
 
-				//send email
+				//send email - use direct method to support inline CID images
 				$email = new email(array("domain_uuid" => $domain_uuid));
+				$email->method = 'direct';
 				$email->recipients = $send_to;
 				$email->subject = $text['label-email_subject'] . ' ' . htmlspecialchars($selected_extension['extension']);
 				$email->body = $email_body;
@@ -560,8 +563,8 @@ var pwdVisible = false;
 <?php if($provisioning_url): ?>
 new QRCode(document.getElementById("qrcode"), {
 	text: "<?php echo addslashes($provisioning_url); ?>",
-	width: 220,
-	height: 220,
+	width: 250,
+	height: 250,
 	colorDark: "#000000",
 	colorLight: "#ffffff",
 	correctLevel: QRCode.CorrectLevel.M
