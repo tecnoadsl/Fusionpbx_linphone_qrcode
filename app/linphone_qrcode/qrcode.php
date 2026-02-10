@@ -125,24 +125,43 @@
 					$qr_image_data = $matches[1];
 				}
 
-				//build email body
-				$email_body = '<html><body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">';
-				$email_body .= '<h2 style="color: #333;">'.$text['label-email_body_title'].'</h2>';
-				$email_body .= '<p>'.$text['label-email_body_intro'].'</p>';
+				//build email body - table-based layout for email client compatibility
+				$email_body = '<html><body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;">';
+				$email_body .= '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="center" style="padding: 20px 0;">';
+				$email_body .= '<table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="background: #ffffff; border-radius: 8px; border: 1px solid #e0e0e0;">';
+				//header
+				$email_body .= '<tr><td align="center" style="padding: 30px 30px 10px 30px;">';
+				$email_body .= '<h2 style="color: #333; margin: 0; font-size: 22px;">'.$text['label-email_body_title'].'</h2>';
+				$email_body .= '</td></tr>';
+				//intro text
+				$email_body .= '<tr><td align="center" style="padding: 10px 30px; color: #555; font-size: 14px; line-height: 1.5;">';
+				$email_body .= $text['label-email_body_intro'];
+				$email_body .= '</td></tr>';
+				//qr code image
 				if (!empty($qr_image_data)) {
-					$email_body .= '<div style="text-align: center; margin: 25px 0;">';
-					$email_body .= '<img src="cid:qrcode_image" width="220" height="220" alt="QR Code" style="border: 1px solid #eee; padding: 10px;" />';
-					$email_body .= '</div>';
+					$email_body .= '<tr><td align="center" style="padding: 20px 30px;">';
+					$email_body .= '<img src="cid:qrcode_image" width="220" height="220" alt="QR Code" style="display: block; margin: 0 auto; border: 1px solid #eee; padding: 10px; background: #fff;" />';
+					$email_body .= '</td></tr>';
 				}
-				$email_body .= '<p>'.$text['label-email_body_manual'].'</p>';
-				$email_body .= '<table style="border-collapse: collapse; width: 100%;">';
-				$email_body .= '<tr><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">'.$text['label-username'].'</td><td style="padding: 8px; border-bottom: 1px solid #eee; font-family: monospace;">'.htmlspecialchars($selected_extension['extension']).'</td></tr>';
-				$email_body .= '<tr><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">'.$text['label-password'].'</td><td style="padding: 8px; border-bottom: 1px solid #eee; font-family: monospace;">'.htmlspecialchars($selected_extension['password']).'</td></tr>';
-				$email_body .= '<tr><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">'.$text['label-domain'].'</td><td style="padding: 8px; border-bottom: 1px solid #eee; font-family: monospace;">'.htmlspecialchars($domain_name).'</td></tr>';
-				$email_body .= '<tr><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">'.$text['label-proxy'].'</td><td style="padding: 8px; border-bottom: 1px solid #eee; font-family: monospace;">'.htmlspecialchars($push_proxy).'</td></tr>';
-				$email_body .= '<tr><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">'.$text['label-transport'].'</td><td style="padding: 8px; border-bottom: 1px solid #eee; font-family: monospace;">'.strtoupper($transport).'</td></tr>';
-				$email_body .= '<tr><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">'.$text['label-port'].'</td><td style="padding: 8px; border-bottom: 1px solid #eee; font-family: monospace;">'.$sip_port.'</td></tr>';
+				//manual config title
+				$email_body .= '<tr><td style="padding: 15px 30px 5px 30px; color: #555; font-size: 14px;">';
+				$email_body .= $text['label-email_body_manual'];
+				$email_body .= '</td></tr>';
+				//config table
+				$email_body .= '<tr><td style="padding: 5px 30px 25px 30px;">';
+				$email_body .= '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">';
+				$td_label = 'style="padding: 10px 8px; border-bottom: 1px solid #eee; font-weight: bold; color: #333; width: 130px;"';
+				$td_value = 'style="padding: 10px 8px; border-bottom: 1px solid #eee; font-family: monospace; font-size: 13px; color: #555;"';
+				$email_body .= '<tr><td '.$td_label.'>'.$text['label-username'].'</td><td '.$td_value.'>'.htmlspecialchars($selected_extension['extension']).'</td></tr>';
+				$email_body .= '<tr><td '.$td_label.'>'.$text['label-password'].'</td><td '.$td_value.'>'.htmlspecialchars($selected_extension['password']).'</td></tr>';
+				$email_body .= '<tr><td '.$td_label.'>'.$text['label-domain'].'</td><td '.$td_value.'>'.htmlspecialchars($domain_name).'</td></tr>';
+				$email_body .= '<tr><td '.$td_label.'>'.$text['label-proxy'].'</td><td '.$td_value.'>'.htmlspecialchars($push_proxy).'</td></tr>';
+				$email_body .= '<tr><td '.$td_label.'>'.$text['label-transport'].'</td><td '.$td_value.'>'.strtoupper($transport).'</td></tr>';
+				$email_body .= '<tr><td '.$td_label.'>'.$text['label-port'].'</td><td '.$td_value.'>'.$sip_port.'</td></tr>';
 				$email_body .= '</table>';
+				$email_body .= '</td></tr>';
+				$email_body .= '</table>';
+				$email_body .= '</td></tr></table>';
 				$email_body .= '</body></html>';
 
 				//send email
@@ -289,16 +308,6 @@
 	background: #3ddc84;
 	color: #000;
 }
-.ext-selector {
-	margin: 15px 0 20px 0;
-}
-.ext-selector select {
-	padding: 10px 15px;
-	font-size: 15px;
-	border-radius: 5px;
-	border: 1px solid #ccc;
-	min-width: 220px;
-}
 .error-box {
 	background: #f8d7da;
 	color: #721c24;
@@ -346,6 +355,43 @@
 	margin-top: 25px;
 	padding-top: 20px;
 	border-top: 1px solid #eee;
+}
+.settings-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+	gap: 15px;
+	text-align: left;
+}
+.setting-card {
+	background: #f8f9fa;
+	border: 1px solid #e9ecef;
+	border-radius: 8px;
+	padding: 14px;
+}
+.setting-card label {
+	display: block;
+	font-size: 11px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+	color: #6c757d;
+	margin-bottom: 8px;
+}
+.setting-card select {
+	width: 100%;
+	padding: 8px 10px;
+	font-size: 14px;
+	border-radius: 5px;
+	border: 1px solid #ced4da;
+	background: #fff;
+	color: #333;
+	cursor: pointer;
+	appearance: auto;
+}
+.setting-card select:focus {
+	border-color: #007bff;
+	outline: none;
+	box-shadow: 0 0 0 2px rgba(0,123,255,0.15);
 }
 </style>
 
@@ -395,40 +441,42 @@
 
 	<!-- Settings sotto -->
 	<div class="settings-section">
+		<div class="settings-grid">
 
-		<?php if (count($extensions) > 1): ?>
-		<div class="ext-selector">
-			<label><strong><?php echo $text['label-select_extension']; ?>:</strong></label><br><br>
-			<select onchange="location.href='?extension_uuid='+this.value+'&transport=<?php echo urlencode($transport); ?>&reg_expires=<?php echo urlencode($reg_expires); ?>'">
-				<?php foreach ($extensions as $ext): ?>
-				<option value="<?php echo $ext['extension_uuid']; ?>" <?php if($ext['extension_uuid']==$selected_extension_uuid) echo 'selected'; ?>>
-					<?php echo htmlspecialchars($ext['extension']); ?>
-					<?php if($ext['effective_caller_id_name']) echo ' - '.htmlspecialchars($ext['effective_caller_id_name']); ?>
-				</option>
-				<?php endforeach; ?>
-			</select>
+			<?php if (count($extensions) > 1): ?>
+			<div class="setting-card">
+				<label><?php echo $text['label-select_extension']; ?></label>
+				<select onchange="location.href='?extension_uuid='+this.value+'&transport=<?php echo urlencode($transport); ?>&reg_expires=<?php echo urlencode($reg_expires); ?>'">
+					<?php foreach ($extensions as $ext): ?>
+					<option value="<?php echo $ext['extension_uuid']; ?>" <?php if($ext['extension_uuid']==$selected_extension_uuid) echo 'selected'; ?>>
+						<?php echo htmlspecialchars($ext['extension']); ?>
+						<?php if($ext['effective_caller_id_name']) echo ' - '.htmlspecialchars($ext['effective_caller_id_name']); ?>
+					</option>
+					<?php endforeach; ?>
+				</select>
+			</div>
+			<?php endif; ?>
+
+			<div class="setting-card">
+				<label><?php echo $text['label-transport']; ?></label>
+				<select onchange="location.href='?extension_uuid=<?php echo urlencode($selected_extension_uuid); ?>&transport='+this.value+'&reg_expires=<?php echo urlencode($reg_expires); ?>'">
+					<option value="tls" <?php if($transport=='tls') echo 'selected'; ?>>TLS (<?php echo $text['label-recommended']; ?>)</option>
+					<option value="tcp" <?php if($transport=='tcp') echo 'selected'; ?>>TCP</option>
+					<option value="udp" <?php if($transport=='udp') echo 'selected'; ?>>UDP</option>
+				</select>
+			</div>
+
+			<div class="setting-card">
+				<label><?php echo $text['label-reg_expires']; ?></label>
+				<select onchange="location.href='?extension_uuid=<?php echo urlencode($selected_extension_uuid); ?>&transport=<?php echo urlencode($transport); ?>&reg_expires='+this.value">
+					<option value="3600" <?php if($reg_expires=='3600') echo 'selected'; ?>><?php echo $text['label-1_hour']; ?></option>
+					<option value="86400" <?php if($reg_expires=='86400') echo 'selected'; ?>><?php echo $text['label-1_day']; ?></option>
+					<option value="604800" <?php if($reg_expires=='604800') echo 'selected'; ?>><?php echo $text['label-1_week']; ?></option>
+					<option value="2592000" <?php if($reg_expires=='2592000') echo 'selected'; ?>><?php echo $text['label-1_month']; ?> (<?php echo $text['label-recommended']; ?>)</option>
+				</select>
+			</div>
+
 		</div>
-		<?php endif; ?>
-
-		<div class="ext-selector">
-			<label><strong><?php echo $text['label-transport']; ?>:</strong></label><br><br>
-			<select onchange="location.href='?extension_uuid=<?php echo urlencode($selected_extension_uuid); ?>&transport='+this.value+'&reg_expires=<?php echo urlencode($reg_expires); ?>'">
-				<option value="tls" <?php if($transport=='tls') echo 'selected'; ?>>TLS (<?php echo $text['label-recommended']; ?>)</option>
-				<option value="tcp" <?php if($transport=='tcp') echo 'selected'; ?>>TCP</option>
-				<option value="udp" <?php if($transport=='udp') echo 'selected'; ?>>UDP</option>
-			</select>
-		</div>
-
-		<div class="ext-selector">
-			<label><strong><?php echo $text['label-reg_expires']; ?>:</strong></label><br><br>
-			<select onchange="location.href='?extension_uuid=<?php echo urlencode($selected_extension_uuid); ?>&transport=<?php echo urlencode($transport); ?>&reg_expires='+this.value">
-				<option value="3600" <?php if($reg_expires=='3600') echo 'selected'; ?>><?php echo $text['label-1_hour']; ?></option>
-				<option value="86400" <?php if($reg_expires=='86400') echo 'selected'; ?>><?php echo $text['label-1_day']; ?></option>
-				<option value="604800" <?php if($reg_expires=='604800') echo 'selected'; ?>><?php echo $text['label-1_week']; ?></option>
-				<option value="2592000" <?php if($reg_expires=='2592000') echo 'selected'; ?>><?php echo $text['label-1_month']; ?> (<?php echo $text['label-recommended']; ?>)</option>
-			</select>
-		</div>
-
 	</div>
 
 	<table class="config-table">

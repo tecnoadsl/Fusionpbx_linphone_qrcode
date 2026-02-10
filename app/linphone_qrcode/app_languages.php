@@ -2,8 +2,8 @@
 $text['title-linphone_qrcode']['it-it'] = "QR Code Linphone";
 $text['title-linphone_qrcode']['en-us'] = "Linphone QR Code";
 
-$text['description-linphone_qrcode']['it-it'] = "Scansiona questo QR code con l'app Linphone per configurare automaticamente il tuo account.";
-$text['description-linphone_qrcode']['en-us'] = "Scan this QR code with Linphone app to automatically configure your account.";
+$text['description-linphone_qrcode']['it-it'] = "Scansiona questo QR code con l'app TecnoadslVoce per configurare automaticamente il tuo account.";
+$text['description-linphone_qrcode']['en-us'] = "Scan this QR code with the TecnoadslVoce app to automatically configure your account.";
 
 $text['label-username']['it-it'] = "Nome utente";
 $text['label-username']['en-us'] = "Username";
@@ -32,8 +32,8 @@ $text['label-hide_password']['en-us'] = "Hide";
 $text['label-instructions']['it-it'] = "Istruzioni";
 $text['label-instructions']['en-us'] = "Instructions";
 
-$text['label-instruction_1']['it-it'] = "Scarica l'app Linphone sul tuo dispositivo";
-$text['label-instruction_1']['en-us'] = "Download Linphone app on your device";
+$text['label-instruction_1']['it-it'] = "Scarica l'app TecnoadslVoce sul tuo dispositivo";
+$text['label-instruction_1']['en-us'] = "Download TecnoadslVoce app on your device";
 
 $text['label-instruction_2']['it-it'] = "Apri l'app e tocca 'Usa account SIP'";
 $text['label-instruction_2']['en-us'] = "Open the app and tap 'Use SIP Account'";
@@ -92,14 +92,14 @@ $text['label-email_error']['en-us'] = "Error sending email.";
 $text['label-email_no_address']['it-it'] = "Nessun indirizzo email associato a questo interno.";
 $text['label-email_no_address']['en-us'] = "No email address associated with this extension.";
 
-$text['label-email_subject']['it-it'] = "Configurazione Linphone - Interno";
-$text['label-email_subject']['en-us'] = "Linphone Configuration - Extension";
+$text['label-email_subject']['it-it'] = "Configurazione TecnoadslVoce - Interno";
+$text['label-email_subject']['en-us'] = "TecnoadslVoce Configuration - Extension";
 
-$text['label-email_body_title']['it-it'] = "Configurazione Linphone";
-$text['label-email_body_title']['en-us'] = "Linphone Configuration";
+$text['label-email_body_title']['it-it'] = "Configurazione TecnoadslVoce";
+$text['label-email_body_title']['en-us'] = "TecnoadslVoce Configuration";
 
-$text['label-email_body_intro']['it-it'] = "Scansiona il QR code qui sotto con l'app Linphone per configurare automaticamente il tuo account.";
-$text['label-email_body_intro']['en-us'] = "Scan the QR code below with the Linphone app to automatically configure your account.";
+$text['label-email_body_intro']['it-it'] = "Scansiona il QR code qui sotto con l'app TecnoadslVoce per configurare automaticamente il tuo account.";
+$text['label-email_body_intro']['en-us'] = "Scan the QR code below with the TecnoadslVoce app to automatically configure your account.";
 
 $text['label-email_body_manual']['it-it'] = "In alternativa, configura manualmente con questi parametri:";
 $text['label-email_body_manual']['en-us'] = "Alternatively, configure manually with these parameters:";
