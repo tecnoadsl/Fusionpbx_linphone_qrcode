@@ -79,4 +79,31 @@ $text['label-1_week']['en-us'] = "1 week";
 
 $text['label-1_month']['it-it'] = "1 mese";
 $text['label-1_month']['en-us'] = "1 month";
+
+$text['label-send_email']['it-it'] = "Invia via Email";
+$text['label-send_email']['en-us'] = "Send via Email";
+
+$text['label-email_sent']['it-it'] = "Email inviata con successo!";
+$text['label-email_sent']['en-us'] = "Email sent successfully!";
+
+$text['label-email_error']['it-it'] = "Errore nell'invio dell'email.";
+$text['label-email_error']['en-us'] = "Error sending email.";
+
+$text['label-email_no_address']['it-it'] = "Nessun indirizzo email associato a questo interno.";
+$text['label-email_no_address']['en-us'] = "No email address associated with this extension.";
+
+$text['label-email_subject']['it-it'] = "Configurazione Linphone - Interno";
+$text['label-email_subject']['en-us'] = "Linphone Configuration - Extension";
+
+$text['label-email_body_title']['it-it'] = "Configurazione Linphone";
+$text['label-email_body_title']['en-us'] = "Linphone Configuration";
+
+$text['label-email_body_intro']['it-it'] = "Scansiona il QR code qui sotto con l'app Linphone per configurare automaticamente il tuo account.";
+$text['label-email_body_intro']['en-us'] = "Scan the QR code below with the Linphone app to automatically configure your account.";
+
+$text['label-email_body_manual']['it-it'] = "In alternativa, configura manualmente con questi parametri:";
+$text['label-email_body_manual']['en-us'] = "Alternatively, configure manually with these parameters:";
+
+$text['label-sending']['it-it'] = "Invio in corso...";
+$text['label-sending']['en-us'] = "Sending...";
 ?>
