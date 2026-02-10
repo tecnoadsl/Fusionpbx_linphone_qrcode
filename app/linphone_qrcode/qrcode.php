@@ -111,11 +111,12 @@
 	}
 
 //handle send email POST
-	$email_message = '';
-	$email_message_type = '';
 	if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'send_email') {
 		//validate CSRF token
 		if (!empty($_SESSION['token']) && !empty($_POST['token']) && $_SESSION['token'] === $_POST['token']) {
+			//invalidate token to prevent double submit
+			unset($_SESSION['token']);
+
 			$send_to = $_POST['email_to'] ?? '';
 			if (!empty($send_to) && filter_var($send_to, FILTER_VALIDATE_EMAIL)) {
 				//get QR code image from POST (base64 data URI from canvas)
@@ -169,6 +170,7 @@
 				//send email - use direct method to support inline CID images
 				$email = new email(array("domain_uuid" => $domain_uuid));
 				$email->method = 'direct';
+				$email->debug_level = 0;
 				$email->recipients = $send_to;
 				$email->subject = $text['label-email_subject'] . ' ' . htmlspecialchars($selected_extension['extension']);
 				$email->body = $email_body;
@@ -187,23 +189,44 @@
 
 				$sent = $email->send();
 				if ($sent) {
-					$email_message = $text['label-email_sent'];
-					$email_message_type = 'success';
+					$_SESSION['email_flash'] = 'success';
 				} else {
-					$email_message = $text['label-email_error'];
-					$email_message_type = 'error';
+					$_SESSION['email_flash'] = 'error';
 				}
 			} else {
-				$email_message = $text['label-email_no_address'];
-				$email_message_type = 'error';
+				$_SESSION['email_flash'] = 'no_address';
 			}
 		}
+
+		//PRG redirect to prevent double submit on refresh
+		$redirect_url = '?extension_uuid=' . urlencode($selected_extension_uuid) . '&transport=' . urlencode($transport) . '&reg_expires=' . urlencode($reg_expires);
+		header('Location: ' . $redirect_url);
+		exit;
+	}
+
+//read flash message from session
+	$email_message = '';
+	$email_message_type = '';
+	if (!empty($_SESSION['email_flash'])) {
+		switch ($_SESSION['email_flash']) {
+			case 'success':
+				$email_message = $text['label-email_sent'];
+				$email_message_type = 'success';
+				break;
+			case 'error':
+				$email_message = $text['label-email_error'];
+				$email_message_type = 'error';
+				break;
+			case 'no_address':
+				$email_message = $text['label-email_no_address'];
+				$email_message_type = 'error';
+				break;
+		}
+		unset($_SESSION['email_flash']);
 	}
 
 //generate CSRF token
-	if (empty($_SESSION['token'])) {
-		$_SESSION['token'] = bin2hex(random_bytes(32));
-	}
+	$_SESSION['token'] = bin2hex(random_bytes(32));
 
 //include the header
 	$document['title'] = $text['title-linphone_qrcode'];
