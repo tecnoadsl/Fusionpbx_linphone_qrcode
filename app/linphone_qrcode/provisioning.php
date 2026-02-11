@@ -171,6 +171,7 @@
 	</section>
 	<section name="misc">
 		<entry name="enable_basic_to_client_group_chat_room" overwrite="true">1</entry>
+		<entry name="conference-factory-uri" overwrite="true">sip:conference-factory@<?php echo $push_proxy; ?></entry>
 	</section>
 	<section name="friends">
 		<entry name="subscribe_presence" overwrite="true">1</entry>
