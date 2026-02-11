@@ -106,4 +106,7 @@ $text['label-email_body_manual']['en-us'] = "Alternatively, configure manually w
 
 $text['label-sending']['it-it'] = "Invio in corso...";
 $text['label-sending']['en-us'] = "Sending...";
+
+$text['label-conference']['it-it'] = "Conference";
+$text['label-conference']['en-us'] = "Conference";
 ?>

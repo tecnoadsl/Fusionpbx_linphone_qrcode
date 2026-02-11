@@ -161,6 +161,7 @@
 				$email_body .= '<tr><td '.$td_label.'>'.$text['label-proxy'].'</td><td '.$td_value.'>'.htmlspecialchars($push_proxy).'</td></tr>';
 				$email_body .= '<tr><td '.$td_label.'>'.$text['label-transport'].'</td><td '.$td_value.'>'.strtoupper($transport).'</td></tr>';
 				$email_body .= '<tr><td '.$td_label.'>'.$text['label-port'].'</td><td '.$td_value.'>'.$sip_port.'</td></tr>';
+				$email_body .= '<tr><td '.$td_label.'>'.$text['label-conference'].'</td><td '.$td_value.'>sip:conference-factory@'.htmlspecialchars($push_proxy).'</td></tr>';
 				$email_body .= '</table>';
 				$email_body .= '</td></tr>';
 				$email_body .= '</table>';
@@ -542,6 +543,13 @@
 		<tr>
 			<td><?php echo $text['label-port']; ?>:</td>
 			<td><?php echo $sip_port; ?></td>
+		</tr>
+		<tr>
+			<td><?php echo $text['label-conference']; ?>:</td>
+			<td>
+				<span id="val_conference">sip:conference-factory@<?php echo htmlspecialchars($push_proxy); ?></span>
+				<button class="copy-btn" onclick="copyText('val_conference')">&#128203; <?php echo $text['label-copy']; ?></button>
+			</td>
 		</tr>
 		<tr>
 			<td><?php echo $text['label-reg_expires']; ?>:</td>
