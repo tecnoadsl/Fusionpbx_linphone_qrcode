@@ -111,7 +111,7 @@
 
 //TURN server settings
 	$turn_server = '185.29.147.43';
-	$turn_port = '3479';
+	$turn_port = '3478';
 	$turn_username = 'olinphone';
 	$turn_password = '1234';
 

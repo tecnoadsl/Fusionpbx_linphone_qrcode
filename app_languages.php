@@ -106,4 +106,13 @@ $text['label-email_body_manual']['en-us'] = "Alternatively, configure manually w
 
 $text['label-sending']['it-it'] = "Invio in corso...";
 $text['label-sending']['en-us'] = "Sending...";
+
+$text['label-stun_server']['it-it'] = "STUN/TURN Server";
+$text['label-stun_server']['en-us'] = "STUN/TURN Server";
+
+$text['label-stun_username']['it-it'] = "TURN Username";
+$text['label-stun_username']['en-us'] = "TURN Username";
+
+$text['label-ice_protocols']['it-it'] = "Protocolli ICE";
+$text['label-ice_protocols']['en-us'] = "ICE Protocols";
 ?>

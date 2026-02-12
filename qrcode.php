@@ -22,6 +22,12 @@
 	$language = new text;
 	$text = $language->get();
 
+//TURN server settings
+	$turn_server = '185.29.147.43';
+	$turn_port = '3478';
+	$turn_username = 'olinphone';
+	$turn_protocols = 'stun,turn,ice';
+
 //settings
 	$push_proxy = 'push.tecnoadsl.net';
 
@@ -553,6 +559,24 @@
 					case '2592000': echo $text['label-1_month']; break;
 				}
 			?></td>
+		</tr>
+		<tr>
+			<td><?php echo $text['label-stun_server']; ?>:</td>
+			<td>
+				<span id="val_stun"><?php echo htmlspecialchars($turn_server . ':' . $turn_port); ?></span>
+				<button class="copy-btn" onclick="copyText('val_stun')">&#128203; <?php echo $text['label-copy']; ?></button>
+			</td>
+		</tr>
+		<tr>
+			<td><?php echo $text['label-stun_username']; ?>:</td>
+			<td>
+				<span id="val_turn_user"><?php echo htmlspecialchars($turn_username); ?></span>
+				<button class="copy-btn" onclick="copyText('val_turn_user')">&#128203; <?php echo $text['label-copy']; ?></button>
+			</td>
+		</tr>
+		<tr>
+			<td><?php echo $text['label-ice_protocols']; ?>:</td>
+			<td><?php echo htmlspecialchars($turn_protocols); ?></td>
 		</tr>
 	</table>
 
