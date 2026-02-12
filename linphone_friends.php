@@ -104,12 +104,12 @@ if (!$authenticated) {
     die(json_encode(["error" => "Authentication required"]));
 }
 
-// Ottieni lista estensioni
-$stmt = $pdo->prepare("SELECT extension, effective_caller_id_name, description 
-    FROM v_extensions 
-    WHERE domain_uuid = ? AND enabled = 'true' 
+// Ottieni lista estensioni (escludi l'interno richiedente)
+$stmt = $pdo->prepare("SELECT extension, effective_caller_id_name, description
+    FROM v_extensions
+    WHERE domain_uuid = ? AND enabled = 'true' AND extension != ?
     ORDER BY extension");
-$stmt->execute([$domain_uuid]);
+$stmt->execute([$domain_uuid, $user]);
 $extensions = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 $friends = [];
