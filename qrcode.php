@@ -473,12 +473,13 @@
 
 	<!-- Settings sotto -->
 	<div class="settings-section">
+		<form id="settings_form" method="get">
 		<div class="settings-grid">
 
 			<?php if (count($extensions) > 1): ?>
 			<div class="setting-card">
 				<label><?php echo $text['label-select_extension']; ?></label>
-				<select onchange="location.href='?extension_uuid='+this.value+'&transport=<?php echo urlencode($transport); ?>&reg_expires=<?php echo urlencode($reg_expires); ?>'">
+				<select name="extension_uuid" onchange="this.form.submit()">
 					<?php foreach ($extensions as $ext): ?>
 					<option value="<?php echo $ext['extension_uuid']; ?>" <?php if($ext['extension_uuid']==$selected_extension_uuid) echo 'selected'; ?>>
 						<?php echo htmlspecialchars($ext['extension']); ?>
@@ -487,11 +488,13 @@
 					<?php endforeach; ?>
 				</select>
 			</div>
+			<?php else: ?>
+			<input type="hidden" name="extension_uuid" value="<?php echo htmlspecialchars($selected_extension_uuid); ?>">
 			<?php endif; ?>
 
 			<div class="setting-card">
 				<label><?php echo $text['label-transport']; ?></label>
-				<select onchange="location.href='?extension_uuid=<?php echo urlencode($selected_extension_uuid); ?>&transport='+this.value+'&reg_expires=<?php echo urlencode($reg_expires); ?>'">
+				<select name="transport" onchange="this.form.submit()">
 					<option value="tls" <?php if($transport=='tls') echo 'selected'; ?>>TLS (<?php echo $text['label-recommended']; ?>)</option>
 					<option value="tcp" <?php if($transport=='tcp') echo 'selected'; ?>>TCP</option>
 					<option value="udp" <?php if($transport=='udp') echo 'selected'; ?>>UDP</option>
@@ -500,7 +503,7 @@
 
 			<div class="setting-card">
 				<label><?php echo $text['label-reg_expires']; ?></label>
-				<select onchange="location.href='?extension_uuid=<?php echo urlencode($selected_extension_uuid); ?>&transport=<?php echo urlencode($transport); ?>&reg_expires='+this.value">
+				<select name="reg_expires" onchange="this.form.submit()">
 					<option value="3600" <?php if($reg_expires=='3600') echo 'selected'; ?>><?php echo $text['label-1_hour']; ?></option>
 					<option value="86400" <?php if($reg_expires=='86400') echo 'selected'; ?>><?php echo $text['label-1_day']; ?></option>
 					<option value="604800" <?php if($reg_expires=='604800') echo 'selected'; ?>><?php echo $text['label-1_week']; ?></option>
@@ -509,6 +512,7 @@
 			</div>
 
 		</div>
+		</form>
 	</div>
 
 	<table class="config-table">
