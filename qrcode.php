@@ -22,12 +22,6 @@
 	$language = new text;
 	$text = $language->get();
 
-//TURN server settings
-	$turn_server = '185.29.147.43';
-	$turn_port = '3478';
-	$turn_username = 'olinphone';
-	$turn_protocols = 'stun,turn,ice';
-
 //settings
 	$push_proxy = 'push.tecnoadsl.net';
 
@@ -51,6 +45,9 @@
 //registration duration selection (default 1 month)
 	$allowed_reg_expires = array('3600', '86400', '604800', '2592000');
 	$reg_expires = isset($_GET['reg_expires']) && in_array($_GET['reg_expires'], $allowed_reg_expires) ? $_GET['reg_expires'] : '2592000';
+
+//presence selection (default disabled)
+	$presence = isset($_GET['presence']) && $_GET['presence'] === '1' ? '1' : '0';
 
 //get variables
 	$domain_uuid = $_SESSION['domain_uuid'];
@@ -97,7 +94,7 @@
 		$iv = substr(md5($domain_uuid), 0, 16);
 		$encrypted = openssl_encrypt($token_data, 'AES-256-CBC', $domain_uuid, 0, $iv);
 		$token = base64_encode($encrypted);
-		$provisioning_url = $base_url . '/app/linphone_qrcode/provisioning.php?token=' . urlencode($token) . '&transport=' . urlencode($transport) . '&reg_expires=' . urlencode($reg_expires);
+		$provisioning_url = $base_url . '/app/linphone_qrcode/provisioning.php?token=' . urlencode($token) . '&transport=' . urlencode($transport) . '&reg_expires=' . urlencode($reg_expires) . '&presence=' . urlencode($presence);
 	}
 
 //get extension email from voicemail
@@ -205,7 +202,7 @@
 		}
 
 		//PRG redirect to prevent double submit on refresh
-		$redirect_url = '?extension_uuid=' . urlencode($selected_extension_uuid) . '&transport=' . urlencode($transport) . '&reg_expires=' . urlencode($reg_expires);
+		$redirect_url = '?extension_uuid=' . urlencode($selected_extension_uuid) . '&transport=' . urlencode($transport) . '&reg_expires=' . urlencode($reg_expires) . '&presence=' . urlencode($presence);
 		header('Location: ' . $redirect_url);
 		exit;
 	}
@@ -458,6 +455,7 @@
 		<input type="hidden" name="extension_uuid" value="<?php echo htmlspecialchars($selected_extension_uuid); ?>">
 		<input type="hidden" name="transport" value="<?php echo htmlspecialchars($transport); ?>">
 		<input type="hidden" name="reg_expires" value="<?php echo htmlspecialchars($reg_expires); ?>">
+		<input type="hidden" name="presence" value="<?php echo htmlspecialchars($presence); ?>">
 		<input type="hidden" name="email_to" value="<?php echo htmlspecialchars($extension_email); ?>">
 		<input type="hidden" name="qr_image" id="qr_image_data" value="">
 		<button type="submit" class="email-btn" id="send_email_btn" <?php if (empty($extension_email)) echo 'disabled'; ?>>
@@ -508,6 +506,14 @@
 					<option value="86400" <?php if($reg_expires=='86400') echo 'selected'; ?>><?php echo $text['label-1_day']; ?></option>
 					<option value="604800" <?php if($reg_expires=='604800') echo 'selected'; ?>><?php echo $text['label-1_week']; ?></option>
 					<option value="2592000" <?php if($reg_expires=='2592000') echo 'selected'; ?>><?php echo $text['label-1_month']; ?> (<?php echo $text['label-recommended']; ?>)</option>
+				</select>
+			</div>
+
+			<div class="setting-card">
+				<label><?php echo $text['label-presence']; ?></label>
+				<select name="presence" onchange="this.form.submit()">
+					<option value="0" <?php if($presence=='0') echo 'selected'; ?>><?php echo $text['label-disabled']; ?></option>
+					<option value="1" <?php if($presence=='1') echo 'selected'; ?>><?php echo $text['label-enabled']; ?></option>
 				</select>
 			</div>
 
@@ -565,22 +571,12 @@
 			?></td>
 		</tr>
 		<tr>
-			<td><?php echo $text['label-stun_server']; ?>:</td>
-			<td>
-				<span id="val_stun"><?php echo htmlspecialchars($turn_server . ':' . $turn_port); ?></span>
-				<button class="copy-btn" onclick="copyText('val_stun')">&#128203; <?php echo $text['label-copy']; ?></button>
-			</td>
-		</tr>
-		<tr>
-			<td><?php echo $text['label-stun_username']; ?>:</td>
-			<td>
-				<span id="val_turn_user"><?php echo htmlspecialchars($turn_username); ?></span>
-				<button class="copy-btn" onclick="copyText('val_turn_user')">&#128203; <?php echo $text['label-copy']; ?></button>
-			</td>
+			<td><?php echo $text['label-presence']; ?>:</td>
+			<td><?php echo $presence === '1' ? $text['label-enabled'] : $text['label-disabled']; ?></td>
 		</tr>
 		<tr>
 			<td><?php echo $text['label-ice_protocols']; ?>:</td>
-			<td><?php echo htmlspecialchars($turn_protocols); ?></td>
+			<td><?php echo $text['label-disabled'] ?? 'Disabled'; ?></td>
 		</tr>
 	</table>
 

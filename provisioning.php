@@ -81,6 +81,9 @@
 	$allowed_transports = array('tls', 'tcp', 'udp');
 	$transport = isset($_GET['transport']) && in_array($_GET['transport'], $allowed_transports) ? $_GET['transport'] : 'tls';
 
+//presence selection (default disabled)
+	$presence = isset($_GET['presence']) && $_GET['presence'] === '1' ? '1' : '0';
+
 //transport-dependent settings
 	switch ($transport) {
 		case 'tls':
@@ -89,7 +92,6 @@
 			$local_udp_port = '-1';
 			$local_tcp_port = '-1';
 			$local_tls_port = '5061';
-			$udp_turn = '0';
 			break;
 		case 'tcp':
 			$sip_scheme = 'sip';
@@ -97,7 +99,6 @@
 			$local_udp_port = '-1';
 			$local_tcp_port = '5060';
 			$local_tls_port = '-1';
-			$udp_turn = '0';
 			break;
 		case 'udp':
 			$sip_scheme = 'sip';
@@ -105,26 +106,22 @@
 			$local_udp_port = '5060';
 			$local_tcp_port = '-1';
 			$local_tls_port = '-1';
-			$udp_turn = '1';
 			break;
 	}
-
-//TURN server settings
-	$turn_server = '185.29.147.43';
-	$turn_port = '3478';
-	$turn_username = 'olinphone';
-	$turn_password = '1234';
 
 //display name
 	$display_name = $ext['effective_caller_id_name'] ? $ext['effective_caller_id_name'] : $ext['extension'];
 
-//get all extensions in domain for BLF/presence
-	$sql = "SELECT extension, effective_caller_id_name, description FROM v_extensions ";
-	$sql .= "WHERE domain_uuid = :dom AND enabled = 'true' AND extension != :current_ext ";
-	$sql .= "ORDER BY extension";
-	$parameters = array('dom' => $domain_uuid, 'current_ext' => $ext['extension']);
-	$all_extensions = $database->select($sql, $parameters, 'all');
-	unset($sql, $parameters);
+//get all extensions in domain for BLF/presence (only if presence enabled)
+	$all_extensions = array();
+	if ($presence === '1') {
+		$sql = "SELECT extension, effective_caller_id_name, description FROM v_extensions ";
+		$sql .= "WHERE domain_uuid = :dom AND enabled = 'true' AND extension != :current_ext ";
+		$sql .= "ORDER BY extension";
+		$parameters = array('dom' => $domain_uuid, 'current_ext' => $ext['extension']);
+		$all_extensions = $database->select($sql, $parameters, 'all');
+		unset($sql, $parameters);
+	}
 
 //output XML
 	header('Content-Type: application/xml; charset=utf-8');
@@ -139,7 +136,7 @@
 		<entry name="realm" overwrite="true"><?php echo $domain_name; ?></entry>
 		<entry name="reg_expires" overwrite="true"><?php echo $reg_expires; ?></entry>
 		<entry name="reg_sendregister" overwrite="true">1</entry>
-		<entry name="publish" overwrite="true">1</entry>
+		<entry name="publish" overwrite="true"><?php echo $presence; ?></entry>
 		<entry name="push_notification_allowed" overwrite="true">1</entry>
 		<entry name="nat_policy_ref" overwrite="true">tecnoadsl_nat_policy</entry>
 	</section>
@@ -150,12 +147,6 @@
 		<entry name="realm" overwrite="true"><?php echo $domain_name; ?></entry>
 		<entry name="domain" overwrite="true"><?php echo $domain_name; ?></entry>
 	</section>
-	<section name="auth_info_1">
-		<entry name="username" overwrite="true"><?php echo $turn_username; ?></entry>
-		<entry name="userid" overwrite="true"><?php echo $turn_username; ?></entry>
-		<entry name="passwd" overwrite="true"><?php echo $turn_password; ?></entry>
-		<entry name="realm" overwrite="true">push.tecnoadsl.net</entry>
-	</section>
 	<section name="sip">
 		<entry name="default_proxy" overwrite="true">0</entry>
 		<entry name="use_rfc2833" overwrite="true">1</entry>
@@ -165,27 +156,32 @@
 	</section>
 	<section name="app">
 		<entry name="display_name" overwrite="true"><?php echo htmlspecialchars($display_name); ?></entry>
+<?php if ($presence === '1'): ?>
 		<entry name="remote_friends_url" overwrite="true">https://<?php echo $_SERVER['HTTP_HOST']; ?>/app/provision/linphone_friends.php</entry>
 		<entry name="remote_friends_sync_interval_hours" overwrite="true">4</entry>
 		<entry name="auto_download_friends_enabled" overwrite="true">1</entry>
+<?php endif; ?>
 	</section>
 	<section name="misc">
 		<entry name="enable_basic_to_client_group_chat_room" overwrite="true">1</entry>
 	</section>
 	<section name="friends">
-		<entry name="subscribe_presence" overwrite="true">1</entry>
-		<entry name="publish_presence" overwrite="true">1</entry>
+		<entry name="subscribe_presence" overwrite="true"><?php echo $presence; ?></entry>
+		<entry name="publish_presence" overwrite="true"><?php echo $presence; ?></entry>
 	</section>
 	<section name="net">
 		<entry name="nat_policy_ref" overwrite="true">tecnoadsl_nat_policy</entry>
 	</section>
 	<section name="nat_policy_0">
 		<entry name="ref" overwrite="true">tecnoadsl_nat_policy</entry>
-		<entry name="stun_server" overwrite="true"><?php echo $turn_server; ?>:<?php echo $turn_port; ?></entry>
-		<entry name="stun_server_username" overwrite="true"><?php echo $turn_username; ?></entry>
-		<entry name="protocols" overwrite="true">stun,turn,ice</entry>
-		<entry name="tcp_turn_transport" overwrite="true">1</entry>
-		<entry name="udp_turn_transport" overwrite="true"><?php echo $udp_turn; ?></entry>
+		<entry name="stun_server" overwrite="true"></entry>
+		<entry name="stun_server_username" overwrite="true"></entry>
+		<entry name="protocols" overwrite="true"></entry>
+		<entry name="stun_enabled" overwrite="true">0</entry>
+		<entry name="turn_enabled" overwrite="true">0</entry>
+		<entry name="ice_enabled" overwrite="true">0</entry>
+		<entry name="tcp_turn_transport" overwrite="true">0</entry>
+		<entry name="udp_turn_transport" overwrite="true">0</entry>
 	</section>
 	<section name="audio_codec_0">
 		<entry name="mime" overwrite="true">opus</entry>
@@ -206,8 +202,8 @@
 		<entry name="enabled" overwrite="true">1</entry>
 	</section>
 <?php
-//generate friend sections for BLF/presence
-if (!empty($all_extensions)) {
+//generate friend sections for BLF/presence (only if presence enabled)
+if ($presence === '1' && !empty($all_extensions)) {
 	$i = 0;
 	foreach ($all_extensions as $friend) {
 		$friend_name = $friend['effective_caller_id_name'] ?: $friend['description'] ?: $friend['extension'];

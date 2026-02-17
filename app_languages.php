@@ -113,6 +113,15 @@ $text['label-stun_server']['en-us'] = "STUN/TURN Server";
 $text['label-stun_username']['it-it'] = "TURN Username";
 $text['label-stun_username']['en-us'] = "TURN Username";
 
-$text['label-ice_protocols']['it-it'] = "Protocolli ICE";
-$text['label-ice_protocols']['en-us'] = "ICE Protocols";
+$text['label-ice_protocols']['it-it'] = "ICE/STUN/TURN";
+$text['label-ice_protocols']['en-us'] = "ICE/STUN/TURN";
+
+$text['label-disabled']['it-it'] = "Disabilitato";
+$text['label-disabled']['en-us'] = "Disabled";
+
+$text['label-presence']['it-it'] = "Presence/BLF";
+$text['label-presence']['en-us'] = "Presence/BLF";
+
+$text['label-enabled']['it-it'] = "Abilitato";
+$text['label-enabled']['en-us'] = "Enabled";
 ?>
