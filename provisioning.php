@@ -112,16 +112,13 @@
 //display name
 	$display_name = $ext['effective_caller_id_name'] ? $ext['effective_caller_id_name'] : $ext['extension'];
 
-//get all extensions in domain for BLF/presence (only if presence enabled)
-	$all_extensions = array();
-	if ($presence === '1') {
-		$sql = "SELECT extension, effective_caller_id_name, description FROM v_extensions ";
-		$sql .= "WHERE domain_uuid = :dom AND enabled = 'true' AND extension != :current_ext ";
-		$sql .= "ORDER BY extension";
-		$parameters = array('dom' => $domain_uuid, 'current_ext' => $ext['extension']);
-		$all_extensions = $database->select($sql, $parameters, 'all');
-		unset($sql, $parameters);
-	}
+//get all extensions in domain for friend list (always, needed for caller ID and team)
+	$sql = "SELECT extension, effective_caller_id_name, description FROM v_extensions ";
+	$sql .= "WHERE domain_uuid = :dom AND enabled = 'true' AND extension != :current_ext ";
+	$sql .= "ORDER BY extension";
+	$parameters = array('dom' => $domain_uuid, 'current_ext' => $ext['extension']);
+	$all_extensions = $database->select($sql, $parameters, 'all');
+	unset($sql, $parameters);
 
 //output XML
 	header('Content-Type: application/xml; charset=utf-8');
@@ -138,7 +135,6 @@
 		<entry name="reg_sendregister" overwrite="true">1</entry>
 		<entry name="publish" overwrite="true"><?php echo $presence; ?></entry>
 		<entry name="push_notification_allowed" overwrite="true">1</entry>
-		<entry name="nat_policy_ref" overwrite="true">tecnoadsl_nat_policy</entry>
 	</section>
 	<section name="auth_info_0">
 		<entry name="username" overwrite="true"><?php echo $ext['extension']; ?></entry>
@@ -156,32 +152,8 @@
 	</section>
 	<section name="app">
 		<entry name="display_name" overwrite="true"><?php echo htmlspecialchars($display_name); ?></entry>
-<?php if ($presence === '1'): ?>
 		<entry name="remote_friends_url" overwrite="true">https://<?php echo $_SERVER['HTTP_HOST']; ?>/app/provision/linphone_friends.php</entry>
 		<entry name="remote_friends_sync_interval_hours" overwrite="true">4</entry>
-		<entry name="auto_download_friends_enabled" overwrite="true">1</entry>
-<?php endif; ?>
-	</section>
-	<section name="misc">
-		<entry name="enable_basic_to_client_group_chat_room" overwrite="true">1</entry>
-	</section>
-	<section name="friends">
-		<entry name="subscribe_presence" overwrite="true"><?php echo $presence; ?></entry>
-		<entry name="publish_presence" overwrite="true"><?php echo $presence; ?></entry>
-	</section>
-	<section name="net">
-		<entry name="nat_policy_ref" overwrite="true">tecnoadsl_nat_policy</entry>
-	</section>
-	<section name="nat_policy_0">
-		<entry name="ref" overwrite="true">tecnoadsl_nat_policy</entry>
-		<entry name="stun_server" overwrite="true"></entry>
-		<entry name="stun_server_username" overwrite="true"></entry>
-		<entry name="protocols" overwrite="true"></entry>
-		<entry name="stun_enabled" overwrite="true">0</entry>
-		<entry name="turn_enabled" overwrite="true">0</entry>
-		<entry name="ice_enabled" overwrite="true">0</entry>
-		<entry name="tcp_turn_transport" overwrite="true">0</entry>
-		<entry name="udp_turn_transport" overwrite="true">0</entry>
 	</section>
 	<section name="audio_codec_0">
 		<entry name="mime" overwrite="true">opus</entry>
@@ -202,8 +174,8 @@
 		<entry name="enabled" overwrite="true">1</entry>
 	</section>
 <?php
-//generate friend sections for BLF/presence (only if presence enabled)
-if ($presence === '1' && !empty($all_extensions)) {
+//generate friend sections (always included for caller ID and team view)
+if (!empty($all_extensions)) {
 	$i = 0;
 	foreach ($all_extensions as $friend) {
 		$friend_name = $friend['effective_caller_id_name'] ?: $friend['description'] ?: $friend['extension'];
@@ -213,7 +185,7 @@ if ($presence === '1' && !empty($all_extensions)) {
 	<section name="friend_<?php echo $i; ?>">
 		<entry name="url" overwrite="true">"<?php echo $friend_name; ?>" &lt;sip:<?php echo $friend_ext; ?>@<?php echo $domain_name; ?>&gt;</entry>
 		<entry name="pol" overwrite="true">accept</entry>
-		<entry name="subscribe" overwrite="true">1</entry>
+		<entry name="subscribe" overwrite="true"><?php echo $presence; ?></entry>
 	</section>
 <?php
 		$i++;
