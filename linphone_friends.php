@@ -2,6 +2,24 @@
 header("Content-Type: application/json");
 header("Access-Control-Allow-Origin: *");
 
+// --- BLF WebSocket JWT Configuration ---
+$blf_jwt_secret = "ff6f69e33986e9abb9aaa048c0d06846343f736ca90aa96236649c13b5a71b6a";
+$blf_ws_url     = "wss://push6.tecnoadsl.net/ws";
+$blf_token_ttl  = 86400; // 24 hours
+
+function blf_base64url_encode($data) {
+    return rtrim(strtr(base64_encode($data), "+/", "-_"), "=");
+}
+
+function blf_generate_jwt($payload, $secret) {
+    $header = blf_base64url_encode(json_encode(["alg" => "HS256", "typ" => "JWT"]));
+    $payload_encoded = blf_base64url_encode(json_encode($payload));
+    $signature = blf_base64url_encode(
+        hash_hmac("sha256", "$header.$payload_encoded", $secret, true)
+    );
+    return "$header.$payload_encoded.$signature";
+}
+
 // Metodo 1: Token segreto (più semplice)
 $secret_token = "FusionPBX2024Secret";
 
@@ -56,9 +74,9 @@ $domain_uuid = null;
 
 // Metodo 1: Token segreto + user/domain nei parametri
 if (!empty($token) && $token === $secret_token && !empty($user) && !empty($domain)) {
-    $stmt = $pdo->prepare("SELECT e.extension_uuid, d.domain_uuid 
-        FROM v_extensions e 
-        JOIN v_domains d ON e.domain_uuid = d.domain_uuid 
+    $stmt = $pdo->prepare("SELECT e.extension_uuid, d.domain_uuid
+        FROM v_extensions e
+        JOIN v_domains d ON e.domain_uuid = d.domain_uuid
         WHERE e.extension = ? AND d.domain_name = ? AND e.enabled = 'true'");
     $stmt->execute([$user, $domain]);
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -70,9 +88,9 @@ if (!empty($token) && $token === $secret_token && !empty($user) && !empty($domai
 
 // Metodo 2: Basic Auth con password
 if (!$authenticated && !empty($username) && !empty($password) && !empty($domain)) {
-    $stmt = $pdo->prepare("SELECT e.extension_uuid, e.password, d.domain_uuid 
-        FROM v_extensions e 
-        JOIN v_domains d ON e.domain_uuid = d.domain_uuid 
+    $stmt = $pdo->prepare("SELECT e.extension_uuid, e.password, d.domain_uuid
+        FROM v_extensions e
+        JOIN v_domains d ON e.domain_uuid = d.domain_uuid
         WHERE e.extension = ? AND d.domain_name = ? AND e.enabled = 'true'");
     $stmt->execute([$username, $domain]);
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -84,9 +102,9 @@ if (!$authenticated && !empty($username) && !empty($password) && !empty($domain)
 
 // Metodo 3: Verifica solo che l'utente esista (se ha Basic Auth ma password vuota/errata)
 if (!$authenticated && !empty($username) && !empty($domain)) {
-    $stmt = $pdo->prepare("SELECT e.extension_uuid, d.domain_uuid 
-        FROM v_extensions e 
-        JOIN v_domains d ON e.domain_uuid = d.domain_uuid 
+    $stmt = $pdo->prepare("SELECT e.extension_uuid, d.domain_uuid
+        FROM v_extensions e
+        JOIN v_domains d ON e.domain_uuid = d.domain_uuid
         WHERE e.extension = ? AND d.domain_name = ? AND e.enabled = 'true'");
     $stmt->execute([$username, $domain]);
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -123,4 +141,19 @@ foreach ($extensions as $ext) {
     ];
 }
 
-echo json_encode(["version" => time(), "count" => count($friends), "friends" => $friends]);
+// Generate BLF JWT token
+$blf_token = blf_generate_jwt([
+    "sub"      => $user,
+    "username" => $user,
+    "domain"   => $domain,
+    "iat"      => time(),
+    "exp"      => time() + $blf_token_ttl,
+], $blf_jwt_secret);
+
+echo json_encode([
+    "version"   => time(),
+    "count"     => count($friends),
+    "friends"   => $friends,
+    "blf_token" => $blf_token,
+    "blf_url"   => $blf_ws_url,
+]);
