@@ -31,6 +31,8 @@
 		$push_proxy = 'push6.tecnoadsl.net';
 	} elseif (preg_match('/\.voip5\.tecnoadsl\.net$/', $domain_name_temp)) {
 		$push_proxy = 'push5.tecnoadsl.net';
+	} elseif (preg_match('/\.voip7\.tecnoadsl\.net$/', $domain_name_temp)) {
+		$push_proxy = 'push7.tecnoadsl.net';
 	}
 
 //transport selection (default tls)
