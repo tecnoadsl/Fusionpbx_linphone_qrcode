@@ -34,17 +34,24 @@ function normalize_contact_number($n) {
 }
 
 function build_shared_contacts($pdo, $domain_uuid) {
-    $stmt = $pdo->prepare("SELECT c.contact_name_given, c.contact_name_family, c.contact_organization, c.contact_nickname,
-            (SELECT string_agg(p.phone_number, '|' ORDER BY p.phone_primary DESC NULLS LAST)
-               FROM v_contact_phones p
-              WHERE p.contact_uuid = c.contact_uuid AND nullif(trim(p.phone_number), '') IS NOT NULL
-                AND coalesce(p.phone_type_fax, 0) = 0) AS numbers,
-            (SELECT e.email_address FROM v_contact_emails e
-              WHERE e.contact_uuid = c.contact_uuid AND nullif(trim(e.email_address), '') IS NOT NULL
-              ORDER BY e.email_primary DESC NULLS LAST LIMIT 1) AS email
-        FROM v_contacts c
-        WHERE c.domain_uuid = ?");
-    $stmt->execute([$domain_uuid]);
+    // Aggregazioni una sola volta per tenant (le sotto-query per contatto con 15mila righe impiegavano 35 s)
+    $stmt = $pdo->prepare("WITH ph AS (
+            SELECT contact_uuid, string_agg(phone_number, '|' ORDER BY phone_primary DESC NULLS LAST) AS numbers
+              FROM v_contact_phones
+             WHERE domain_uuid = :d AND nullif(trim(phone_number), '') IS NOT NULL AND coalesce(phone_type_fax, 0) = 0
+             GROUP BY contact_uuid),
+          em AS (
+            SELECT DISTINCT ON (contact_uuid) contact_uuid, email_address
+              FROM v_contact_emails
+             WHERE domain_uuid = :d AND nullif(trim(email_address), '') IS NOT NULL
+             ORDER BY contact_uuid, email_primary DESC NULLS LAST)
+        SELECT c.contact_name_given, c.contact_name_family, c.contact_organization, c.contact_nickname,
+               ph.numbers, em.email_address AS email
+          FROM v_contacts c
+          JOIN ph ON ph.contact_uuid = c.contact_uuid
+          LEFT JOIN em ON em.contact_uuid = c.contact_uuid
+         WHERE c.domain_uuid = :d");
+    $stmt->execute([":d" => $domain_uuid]);
     $out = [];
     foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $r) {
         $name = trim(trim($r["contact_name_given"] ?? "") . " " . trim($r["contact_name_family"] ?? ""));
