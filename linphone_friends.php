@@ -125,7 +125,7 @@ if (!$authenticated && !empty($username) && !empty($password) && !empty($domain)
         WHERE e.extension = ? AND d.domain_name = ? AND e.enabled = 'true'");
     $stmt->execute([$username, $domain]);
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
-    if ($row && $row["password"] === $password) {
+    if ($row && hash_equals((string)$row["password"], (string)$password)) {
         $authenticated = true;
         $password_verified = true;
         $domain_uuid = $row["domain_uuid"];
@@ -209,7 +209,12 @@ $response = [
 // La rubrica condivisa solo a password SIP verificata: mai col token fisso (Metodo 1)
 // ne' con l'accesso per sola esistenza dell'utente (Metodo 3).
 if ($password_verified) {
-    $response["contacts"] = build_shared_contacts($pdo, $domain_uuid);
+    try {
+        $response["contacts"] = build_shared_contacts($pdo, $domain_uuid);
+    } catch (Throwable $e) {
+        // Es. tabella assente su un PBX senza l'app rubrica: si omette solo contacts, interni e BLF restano
+        error_log("LinphoneFriends: contacts omessi: " . $e->getMessage());
+    }
 }
 
-echo json_encode($response);
+echo json_encode($response, JSON_INVALID_UTF8_SUBSTITUTE);
