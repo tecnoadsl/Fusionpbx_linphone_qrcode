@@ -132,6 +132,22 @@ if (!$authenticated && !empty($username) && !empty($password) && !empty($domain)
     }
 }
 
+// Metodo 2b: HA1 al posto della password in chiaro. L'SDK Linphone, dopo l'uso, sostituisce la password
+// con md5(utente:realm:password) e le app inviano quello. Il realm e' il dominio del tenant.
+if (!$authenticated && !empty($username) && !empty($domain) && preg_match('/^[0-9a-f]{32}$/i', $password)) {
+    $stmt = $pdo->prepare("SELECT e.extension_uuid, e.password, d.domain_uuid
+        FROM v_extensions e
+        JOIN v_domains d ON e.domain_uuid = d.domain_uuid
+        WHERE e.extension = ? AND d.domain_name = ? AND e.enabled = 'true'");
+    $stmt->execute([$username, $domain]);
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    if ($row && hash_equals(md5($username . ":" . $domain . ":" . $row["password"]), strtolower($password))) {
+        $authenticated = true;
+        $password_verified = true;
+        $domain_uuid = $row["domain_uuid"];
+    }
+}
+
 // Metodo 3: Verifica solo che l'utente esista (se ha Basic Auth ma password vuota/errata)
 if (!$authenticated && !empty($username) && !empty($domain)) {
     $stmt = $pdo->prepare("SELECT e.extension_uuid, d.domain_uuid
