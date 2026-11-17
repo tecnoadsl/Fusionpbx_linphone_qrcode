@@ -24,18 +24,11 @@ function blf_generate_jwt($payload, $secret) {
 // Nome = "nome cognome", altrimenti organizzazione, altrimenti soprannome; numeri = telefoni non-fax puliti.
 // Contatti senza nome o senza numeri vengono scartati. Visibili a tutti gli interni del tenant.
 function normalize_contact_number($n) {
-    // Il PBX instrada i numeri italiani SENZA prefisso (3xx..., 0xx...) e rifiuta +39/0039: qui si tolgono.
-    // I numeri esteri restano con + davanti (+44...). Solo cifre, nessuno spazio.
+    // Il numero resta come scritto nella scheda (+39..., 0039..., 39...): si tolgono solo spazi e punteggiatura.
+    // Il prefisso italiano lo toglie l'app al momento della chiamata (il PBX rifiuta +39/0039 sui numeri italiani).
     $n = trim($n);
     $plus = (strpos($n, "+") === 0);
     $d = preg_replace("/[^0-9]/", "", $n);
-    if ($d === "") { return ""; }
-    if (!$plus && strpos($d, "00") === 0) { $d = substr($d, 2); $plus = true; }
-    if ($plus) {
-        if (strpos($d, "39") === 0) { $d = substr($d, 2); $plus = false; }
-    } elseif (preg_match("/^39[0-9]{9,}$/", $d)) {
-        $d = substr($d, 2);
-    }
     return (strlen($d) >= 3) ? (($plus ? "+" : "") . $d) : "";
 }
 
