@@ -30,6 +30,8 @@ function normalize_contact_number($n) {
     if ($d === "") { return ""; }
     if (!$plus && strpos($d, "00") === 0) { $d = substr($d, 2); $plus = true; }
     if (!$plus && preg_match("/^39[0-9]{9,}$/", $d)) { $plus = true; }
+    // Numero italiano scritto senza prefisso (fisso 0..., cellulare 3...): si aggiunge +39 cosi' l'app lo chiama e lo riconosce
+    if (!$plus && preg_match("/^[03][0-9]{5,10}$/", $d)) { $d = "39" . $d; $plus = true; }
     return (strlen($d) >= 3) ? (($plus ? "+" : "") . $d) : "";
 }
 
