@@ -20,29 +20,47 @@ function blf_generate_jwt($payload, $secret) {
     return "$header.$payload_encoded.$signature";
 }
 
-// Rubrica condivisa (v_rubrica_condivisa) del tenant, per le app mobili (sola lettura).
-// Nome = "nome cognome", altrimenti azienda; numeri = telefono + cellulare non vuoti.
-// Contatti senza etichetta o senza numeri vengono scartati.
+// Contatti originali di Fusion (v_contacts + v_contact_phones) del tenant, per le app mobili (sola lettura).
+// Nome = "nome cognome", altrimenti organizzazione, altrimenti soprannome; numeri = telefoni non-fax puliti.
+// Contatti senza nome o senza numeri vengono scartati. Visibili a tutti gli interni del tenant.
+function normalize_contact_number($n) {
+    $n = trim($n);
+    $plus = (strpos($n, "+") === 0);
+    $d = preg_replace("/[^0-9]/", "", $n);
+    if ($d === "") { return ""; }
+    if (!$plus && strpos($d, "00") === 0) { $d = substr($d, 2); $plus = true; }
+    if (!$plus && preg_match("/^39[0-9]{9,}$/", $d)) { $plus = true; }
+    return (strlen($d) >= 3) ? (($plus ? "+" : "") . $d) : "";
+}
+
 function build_shared_contacts($pdo, $domain_uuid) {
-    $stmt = $pdo->prepare("SELECT nome, cognome, azienda, telefono, cellulare, email
-        FROM v_rubrica_condivisa
-        WHERE domain_uuid = ?");
+    $stmt = $pdo->prepare("SELECT c.contact_name_given, c.contact_name_family, c.contact_organization, c.contact_nickname,
+            (SELECT string_agg(p.phone_number, '|' ORDER BY p.phone_primary DESC NULLS LAST)
+               FROM v_contact_phones p
+              WHERE p.contact_uuid = c.contact_uuid AND nullif(trim(p.phone_number), '') IS NOT NULL
+                AND coalesce(p.phone_type_fax, 0) = 0) AS numbers,
+            (SELECT e.email_address FROM v_contact_emails e
+              WHERE e.contact_uuid = c.contact_uuid AND nullif(trim(e.email_address), '') IS NOT NULL
+              ORDER BY e.email_primary DESC NULLS LAST LIMIT 1) AS email
+        FROM v_contacts c
+        WHERE c.domain_uuid = ?");
     $stmt->execute([$domain_uuid]);
     $out = [];
     foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $r) {
-        $name = trim(trim($r["nome"] ?? "") . " " . trim($r["cognome"] ?? ""));
-        if ($name === "") { $name = trim($r["azienda"] ?? ""); }
+        $name = trim(trim($r["contact_name_given"] ?? "") . " " . trim($r["contact_name_family"] ?? ""));
+        if ($name === "") { $name = trim($r["contact_organization"] ?? ""); }
+        if ($name === "") { $name = trim($r["contact_nickname"] ?? ""); }
         if ($name === "") { continue; }
         $numbers = [];
-        foreach (["telefono", "cellulare"] as $f) {
-            $n = trim($r[$f] ?? "");
-            if ($n !== "") { $numbers[] = $n; }
+        foreach (explode("|", $r["numbers"] ?? "") as $n) {
+            $n = normalize_contact_number($n);
+            if ($n !== "" && !in_array($n, $numbers, true)) { $numbers[] = $n; }
         }
         if (count($numbers) === 0) { continue; }
         $out[] = [
             "name"    => $name,
             "numbers" => $numbers,
-            "company" => trim($r["azienda"] ?? ""),
+            "company" => trim($r["contact_organization"] ?? ""),
             "email"   => trim($r["email"] ?? ""),
         ];
     }
