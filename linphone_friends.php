@@ -20,6 +20,36 @@ function blf_generate_jwt($payload, $secret) {
     return "$header.$payload_encoded.$signature";
 }
 
+// Rubrica condivisa (v_rubrica_condivisa) del tenant, per le app mobili (sola lettura).
+// Nome = "nome cognome", altrimenti azienda; numeri = telefono + cellulare non vuoti.
+// Contatti senza etichetta o senza numeri vengono scartati.
+function build_shared_contacts($pdo, $domain_uuid) {
+    $stmt = $pdo->prepare("SELECT nome, cognome, azienda, telefono, cellulare, email
+        FROM v_rubrica_condivisa
+        WHERE domain_uuid = ?");
+    $stmt->execute([$domain_uuid]);
+    $out = [];
+    foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $r) {
+        $name = trim(trim($r["nome"] ?? "") . " " . trim($r["cognome"] ?? ""));
+        if ($name === "") { $name = trim($r["azienda"] ?? ""); }
+        if ($name === "") { continue; }
+        $numbers = [];
+        foreach (["telefono", "cellulare"] as $f) {
+            $n = trim($r[$f] ?? "");
+            if ($n !== "") { $numbers[] = $n; }
+        }
+        if (count($numbers) === 0) { continue; }
+        $out[] = [
+            "name"    => $name,
+            "numbers" => $numbers,
+            "company" => trim($r["azienda"] ?? ""),
+            "email"   => trim($r["email"] ?? ""),
+        ];
+    }
+    usort($out, function ($a, $b) { return strcasecmp($a["name"], $b["name"]); });
+    return $out;
+}
+
 // Metodo 1: Token segreto (più semplice)
 $secret_token = "FusionPBX2024Secret";
 
@@ -71,6 +101,7 @@ try {
 // Verifica autenticazione
 $authenticated = false;
 $domain_uuid = null;
+$password_verified = false; // true solo col Metodo 2 (password SIP verificata)
 
 // Metodo 1: Token segreto + user/domain nei parametri
 if (!empty($token) && $token === $secret_token && !empty($user) && !empty($domain)) {
@@ -96,6 +127,7 @@ if (!$authenticated && !empty($username) && !empty($password) && !empty($domain)
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
     if ($row && $row["password"] === $password) {
         $authenticated = true;
+        $password_verified = true;
         $domain_uuid = $row["domain_uuid"];
     }
 }
@@ -150,10 +182,18 @@ $blf_token = blf_generate_jwt([
     "exp"      => time() + $blf_token_ttl,
 ], $blf_jwt_secret);
 
-echo json_encode([
+$response = [
     "version"   => time(),
     "count"     => count($friends),
     "friends"   => $friends,
     "blf_token" => $blf_token,
     "blf_url"   => $blf_ws_url,
-]);
+];
+
+// La rubrica condivisa solo a password SIP verificata: mai col token fisso (Metodo 1)
+// ne' con l'accesso per sola esistenza dell'utente (Metodo 3).
+if ($password_verified) {
+    $response["contacts"] = build_shared_contacts($pdo, $domain_uuid);
+}
+
+echo json_encode($response);
